@@ -3,25 +3,44 @@ import socket
 
 HOST, PORT = '10.0.0.81', 3000
 localIP = ''
-data = 'Request Connect'
+#data = 'Request Connect'
 
-sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+class MessageHandler():
 
-try:
-    sock.connect((HOST, PORT))
-    sock.sendall(data + '\n')
+    def __init__(self):
+        print 'Starting request handler'
 
-    recieved = sock.recv(1024)
-finally:
-    #print 'An error occured, and the socket either could not be opened, or a message could not be sent.'
-    sock.close()
-    #raise SystemExit
+    def parseMessage(self, message):
+        print message
 
-#finally:
-    #sock.close()
+if __name__ in '__main__':
 
-print type(recieved)
-test = json.loads(recieved)
-print type(test)
-print 'Sent: {}'.format(data)
-print 'Recieved: {}'.format(recieved)
+    sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+
+    try:
+        sock.connect((HOST, PORT))
+
+        handle = MessageHandler()
+        disconnect = False
+        while not disconnect:
+            data = raw_input('> ')
+            sock.sendall(data + '\n')
+
+            recieved = sock.recv(1024)
+
+            data = json.loads(recieved)
+            if data['type'] == 'GoodBye':
+                disconnect = True
+            else:
+                handle.parseMessage(data)
+
+    finally:
+        #print 'An error occured, and the socket either could not be opened, or a message could not be sent.'
+        sock.close()
+        #raise SystemExit
+
+    #finally:
+        #sock.close()
+
+    print 'Sent: {}'.format(data)
+    print 'Recieved: {}'.format(recieved)
