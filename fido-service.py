@@ -1,4 +1,4 @@
-import sys, json
+import sys, json, time
 import socket
 
 #LETS MAKE A LOG FILE, OKAY?
@@ -27,8 +27,12 @@ class MessageHandler():
 
     #this logic runs on init in order to make sure the recieving end exists, and that
     #it's ready to recieve messages. We also use this function to get our connection information.
-    def connect(self, socket):
-        data = 'Request Connect'
+    def connect(self, socket, msg_type):
+        if msg_type == 'init':
+            data = 'Request Connect'
+        else:
+            data = raw_input('> ')
+
         sock.sendall(data + '\n')
 
         recieved = sock.recv(1024)
@@ -52,7 +56,7 @@ class MessageHandler():
     #sets the socket object to a variable, sends a connection request to the server
     def setSockData(self, socket):
         self.socket = socket
-        self.connect(socket)
+        self.connect(socket, 'init')
 
 
 if __name__ in '__main__':
@@ -68,30 +72,30 @@ if __name__ in '__main__':
         handle = MessageHandler()
 
         #save our socket object to our messagehandler class, then run connect.
-        #handle.setSockData(sock)
+        handle.setSockData(sock)
 
         #start the backbone of our service.
         #loop and send messages until we can't anymore.
         disconnect = False
         while not disconnect:
             data = raw_input('> ')
+
             sock.sendall(data + '\n')
 
             recieved = sock.recv(1024)
 
             #send current IP and time with each message
-
-            if handle.typeCheck(recieved) and recieved != '':
+            if handle.typeCheck(recieved):
                 print recieved
                 data = json.loads(recieved)
                 if data['type'] == 'GoodBye':
                     disconnect = True
+                    sock.close()
                 else:
                     handle.parseMessage(data)
             else:
                 print 'We did not get a string. We should not be here.'
                 print recieved
-
-    finally:
-        #we should also try and send a goodbye from here if we can.
-        sock.close()
+    except:
+        print 'We encountered an error!'
+        raise SystemExit
