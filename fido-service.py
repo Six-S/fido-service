@@ -16,22 +16,22 @@ class MessageHandler():
         print 'Starting request handler'
         #set up the socket
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        
+
         #connect the socket
         self.sock.connect((HOST, PORT))
 
         #save our socket object to our messagehandler class, then run connect.
         self.setSockData(self.sock)
-        
+
         thread.start_new_thread(self.ping_pong, (self.sock, ))
 
     #this will handle the incoming responses from our dispatch server
     def parseMessage(self, message):
         print message
-    
+
     def getSock(self):
         return self.sock
-    
+
     def ping_pong(self, socket):
         print '[INFO] playing ping pong!'
         disconnected = False
@@ -44,9 +44,9 @@ class MessageHandler():
             except:
                 print 'Failed to ping server at ' + time_now
                 disconnected = True
-            
+
             time.sleep(60)
-        
+
 
     #this checks the type of our response to make sure that we can run json.loads on it.
     #if we return false, we'll exit non-zero, so checking that first will help us handle this error.
