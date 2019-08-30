@@ -35,9 +35,13 @@ class MessageHandler():
     def ping_pong(self, socket):
         print '[INFO] playing ping pong!'
         disconnected = False
+        global sig
         while not disconnected:
-            data = 'Ping'
-            time_now = time.asctime( time.localtime(time.time()))
+            data = {
+                'msg': 'Ping',
+                'time_now': time.asctime( time.localtime(time.time()))
+            }
+            data = json.dumps(data)
             try:
                 self.sock.sendall(data + '\n')
                 recieved = self.sock.recv(1024)
@@ -58,11 +62,9 @@ class MessageHandler():
 
     #this logic runs on init in order to make sure the recieving end exists, and that
     #it's ready to recieve messages. We also use this function to get our connection information.
-    def connect(self, socket, msg_type):
-        if msg_type == 'init':
-            msg = 'Request Connect'
-        else:
-            msg = raw_input('> ')
+    def connect(self, socket):
+        msg = {'msg': 'Request Connect'}
+        msg = json.dumps(msg)
 
         self.sock.sendall(msg + '\n')
 
@@ -90,7 +92,17 @@ class MessageHandler():
 
     #sets the socket object to a variable, sends a connection request to the server
     def setSockData(self, socket):
-        self.connect(socket, 'init')
+        self.connect(socket)
+    
+    def buildSecret(self, message):
+        global sig, address
+        print sig
+        source = sig + address + message
+        print source
+        current_hash = hashlib.sha256(source).hexdigest()
+        print current_hash
+        
+        return current_hash
 
 
 if __name__ in '__main__':
@@ -107,7 +119,14 @@ if __name__ in '__main__':
 
         disconnect = False
         while not disconnect:
-            data = raw_input('> ')
+            message = raw_input('> ')
+            signature = handle.buildSecret(message)
+
+            data = {
+                'msg': message,
+                'sig': signature
+            }
+            data = json.dumps(data)
 
             sock.sendall(data + '\n')
 
