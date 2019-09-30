@@ -13,7 +13,7 @@ sig = ''
 class MessageHandler():
 
     def __init__(self):
-        print 'Starting request handler'
+        print '[INFO] Starting request handler'
         #set up the socket
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
@@ -93,15 +93,12 @@ class MessageHandler():
     #sets the socket object to a variable, sends a connection request to the server
     def setSockData(self, socket):
         self.connect(socket)
-    
+
     def buildSecret(self, message):
         global sig, address
-        print sig
         source = sig + address + message
-        print source
         current_hash = hashlib.sha256(source).hexdigest()
-        print current_hash
-        
+
         return current_hash
 
 
