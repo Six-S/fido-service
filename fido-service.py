@@ -1,10 +1,11 @@
 import sys, json, time
+import speech_recognition as sr
 import thread
 import hashlib
 import socket
 
 #LETS MAKE A LOG FILE, OKAY?
-
+r = sr.Recognizer()
 HOST, PORT = '10.0.0.81', 3000
 address = ''
 connection = False
@@ -59,6 +60,19 @@ class MessageHandler():
             return True
         else:
             return False
+
+    def getSpeech(self):
+        with sr.Microphone() as source:
+            r.adjust_for_ambient_noise(source)
+            print 'Listening for speech...'
+            audio = r.listen(source)
+
+        try:
+            print '[INFO] FIDO Heard: ' + r.recognize_sphinx(audio)
+            return r.recognize_sphinx(audio)
+        except sr.RequestError as e:
+            print '[WARN] The following error was encountered trying to collect speech:'
+            print e
 
     #this logic runs on init in order to make sure the recieving end exists, and that
     #it's ready to recieve messages. We also use this function to get our connection information.
@@ -116,7 +130,10 @@ if __name__ in '__main__':
 
         disconnect = False
         while not disconnect:
-            message = raw_input('> ')
+            #message = raw_input('> ')
+
+            raw_input('[INFO] Waiting for user input...')
+            message = handle.getSpeech()
             signature = handle.buildSecret(message)
 
             data = {
