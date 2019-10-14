@@ -1,11 +1,13 @@
 import sys, json, time
 import speech_recognition as sr
+import pyttsx3
 import thread
 import hashlib
 import socket
 
 #LETS MAKE A LOG FILE, OKAY?
 r = sr.Recognizer()
+engine = pyttsx3.init()
 HOST, PORT = '10.0.0.81', 3000
 address = ''
 connection = False
@@ -28,7 +30,9 @@ class MessageHandler():
 
     #this will handle the incoming responses from our dispatch server
     def parseMessage(self, message):
-        print message
+        print 'Saying thing', message['result']
+        engine.say(message['result'])
+        engine.runAndWait()
 
     def getSock(self):
         return self.sock
@@ -40,14 +44,15 @@ class MessageHandler():
         while not disconnected:
             data = {
                 'msg': 'Ping',
-                'time_now': time.asctime( time.localtime(time.time()))
+                'time_now': time.asctime( time.localtime(time.time())),
+                'sig': self.buildSecret('Ping')
             }
             data = json.dumps(data)
             try:
                 self.sock.sendall(data + '\n')
                 recieved = self.sock.recv(1024)
             except:
-                print 'Failed to ping server at ' + time_now
+                print '[WARN] Failed to ping server at ' + time_now
                 disconnected = True
 
             time.sleep(60)
@@ -73,6 +78,9 @@ class MessageHandler():
         except sr.RequestError as e:
             print '[WARN] The following error was encountered trying to collect speech:'
             print e
+        except KeyboardInterrupt as e:
+            print '[WARN] Heard Keyboard interrupt. Attempting a clean exit.'
+            return 'GoodBye'
 
     #this logic runs on init in order to make sure the recieving end exists, and that
     #it's ready to recieve messages. We also use this function to get our connection information.
@@ -158,6 +166,9 @@ if __name__ in '__main__':
             else:
                 print 'We did not get a string. We should not be here.'
                 print recieved
-    except Exception as e:
+    except KeyboardInterrupt as e:
         print '[WARN] We encountered an error: ', e
+        raise SystemExit
+    except Exception as e:
+        print '[WARN] Heard Keyboard Interrupt. Attempting clean exit: ', e
         raise SystemExit
